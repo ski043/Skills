@@ -1,6 +1,6 @@
 # Skills
 
-A growing collection of reusable Codex skills.
+A growing collection of reusable agent skills.
 
 [![skills.sh](https://skills.sh/b/ski043/Skills)](https://skills.sh/ski043/Skills)
 
@@ -21,19 +21,19 @@ Feature Orchestrator uses GPT-5.6 Sol at Extra High reasoning for the primary im
 
 ### skills.sh
 
-Install Feature Orchestrator for Codex from your project root:
+Install Feature Orchestrator from your project root:
 
 ```bash
-npx skills add ski043/Skills --skill feature-orchestrator --agent codex
+npx skills add ski043/Skills --skill feature-orchestrator
 ```
 
 The skills.sh CLI installs into the current project by default. Add `--global` to make the skill available across your projects:
 
 ```bash
-npx skills add ski043/Skills --skill feature-orchestrator --agent codex --global
+npx skills add ski043/Skills --skill feature-orchestrator --global
 ```
 
-Start a new Codex session after installation. To pull later updates, run:
+Start a new agent session after installation. To pull later updates, run:
 
 ```bash
 npx skills update feature-orchestrator
@@ -41,19 +41,9 @@ npx skills update feature-orchestrator
 
 Browse the repository on the [skills.sh directory](https://skills.sh/ski043/Skills). Repository pages are indexed after the CLI sees an installation, so a new listing may take a little time to appear.
 
-### Codex skill installer
-
-Alternatively, ask Codex to install the skill directly from its GitHub path:
-
-```text
-$skill-installer Install Feature Orchestrator from https://github.com/ski043/Skills/tree/main/skills/feature-orchestrator
-```
-
-Codex detects newly installed skills automatically. If it does not appear, restart Codex.
-
 ### Local development
 
-For local development, Codex also supports symlinked skill directories:
+For local development, compatible agent development environments can discover symlinked skills from the shared skills directory:
 
 ```bash
 git clone https://github.com/ski043/Skills.git

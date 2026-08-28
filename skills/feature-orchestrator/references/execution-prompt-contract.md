@@ -2,7 +2,7 @@
 
 Read this reference only when the user has settled the game plan and asks for the implementation prompt.
 
-The prompt must be self-contained enough for a fresh Codex session to reconstruct the intended outcome without the prior conversation. It is an execution contract, not Session 1's binding implementation plan: Session 2 still inspects the current repository, creates its working plan, chooses the agent topology, and adapts to what it finds.
+The prompt must be self-contained enough for a fresh implementation session to reconstruct the intended outcome without the prior conversation. It is an execution contract, not Session 1's binding implementation plan: Session 2 still inspects the current repository, creates its working plan, chooses the agent topology, and adapts to what it finds.
 
 ## Calibrate depth to the feature
 
