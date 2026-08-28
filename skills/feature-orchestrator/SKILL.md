@@ -1,6 +1,7 @@
 ---
 name: feature-orchestrator
 description: Guide an iterative product and technical discussion, then turn the settled feature into a copy-ready orchestration prompt for a separate implementation session. Use when the user wants to explore, narrow, summarize, or hand off a substantial feature without implementing it in the current session.
+license: MIT
 ---
 
 # Feature Orchestrator
@@ -37,8 +38,9 @@ Separate observed repository facts, current external facts, user decisions, reco
 
 ### Research when it changes a decision
 
-- Delegate independent research, documentation checks, and codebase exploration to GPT-5.6 Terra at Extra High reasoning (`model: gpt-5.6-terra`, `reasoning_effort: xhigh`).
-- Use as many Terra agents as are genuinely useful within available concurrency; give each one a bounded question and concrete deliverable.
+- Before the first delegation, read [references/runtime-routing.md](references/runtime-routing.md) completely and resolve the Lead and Researcher roles for the current agent development environment.
+- Delegate independent research, documentation checks, and codebase exploration to Researcher-role agents.
+- Use as many Researcher agents as are genuinely useful within available concurrency; give each one a bounded question and concrete deliverable.
 - Prefer repository evidence and primary, current sources. Preserve direct links for unstable external claims.
 - Synthesize the findings into the conversation. Do not paste raw research memos or perform research merely to demonstrate a swarm.
 
@@ -67,19 +69,20 @@ This summary may be technically detailed; it is still not Session 2's authoritat
 
 Create the Session 2 prompt only when the user explicitly asks for the high-quality implementation/orchestration prompt or clearly declares the game plan settled.
 
-Before drafting it, read [references/execution-prompt-contract.md](references/execution-prompt-contract.md) completely. Adapt its coverage to the feature. Preserve hard-won domain decisions in specific language; do not compress them into generic “follow best practices” instructions.
+Before drafting it, read [references/runtime-routing.md](references/runtime-routing.md) and [references/execution-prompt-contract.md](references/execution-prompt-contract.md) completely. Reuse a runtime mapping already resolved in this session unless the user changed the environment or model preference. Adapt the prompt contract's coverage to the feature. Preserve hard-won domain decisions in specific language; do not compress them into generic “follow best practices” instructions.
 
 The prompt must preserve these workflow choices:
 
-- The main Session 2 agent runs GPT-5.6 Sol at Extra High reasoning (`model: gpt-5.6-sol`, `reasoning_effort: xhigh`) and is the orchestrator, integration owner, and final verifier.
+- The main Session 2 agent uses the resolved Lead model and is the orchestrator, integration owner, and final verifier.
 - Session 2 inspects the fresh repository, creates its own working plan, and then implements without stopping after the plan.
-- Research, current-documentation work, codebase exploration, and independent read-only review use GPT-5.6 Terra sub-agents at Extra High reasoning (`model: gpt-5.6-terra`, `reasoning_effort: xhigh`).
-- Every code change and review remediation uses GPT-5.6 Sol sub-agents at Extra High reasoning (`model: gpt-5.6-sol`, `reasoning_effort: xhigh`).
+- Research, current-documentation work, codebase exploration, test-gap analysis, and independent read-only review use the resolved Researcher model.
+- Every code change and review remediation uses the resolved Lead model.
+- The compiled prompt states the exact resolved environment, model identifiers, and runtime options. It does not leave “best model” or similar routing decisions unresolved for Session 2.
 - The orchestrator decides what to parallelize or stagger from dependencies, shared files, risk, and available concurrency.
 - There is no arbitrary agent cap, but every sub-agent needs bounded ownership, a concrete deliverable, dependencies, and a verification condition. Do not create a swarm without useful independent work.
 - Implementation agents know they share the repository, preserve user changes, avoid conflicting ownership, and do not revert one another.
 - Focused verification happens throughout implementation; whole-feature verification happens before independent review.
-- Terra reviewers cover distinct material risks. The orchestrator triages their evidence, assigns validated fixes to Sol agents, and reruns affected checks.
+- Researcher-role reviewers cover distinct material risks. The orchestrator triages their evidence, assigns validated fixes to Lead-role agents, and reruns affected checks.
 - Run no more than two full independent review/remediation cycles. Handoff remaining disagreement or uncertainty instead of looping forever.
 - Session 2 prepares a concrete, evidence-backed PR proposal but does not push branches or open pull requests without explicit approval.
 - Completion ends with a handoff and the exact permission question using the actual proposed PR count.
@@ -107,7 +110,8 @@ Confirm that:
 - the prompt reflects every later correction and scope reduction from the conversation;
 - repository facts, decisions, recommendations, and assumptions are not conflated;
 - the prompt contains specific product behavior, technical invariants, and proof requirements—not generic advice;
-- exact model and reasoning roles are correct: the main agent is Sol with `xhigh`; Terra with `xhigh` researches, explores, and reviews; Sol with `xhigh` edits and fixes;
+- the Lead and Researcher roles use exact, available runtime settings resolved from the user override, matching preset, or capability fallback;
+- Researcher-role agents research, explore, analyze gaps, and review; Lead-role agents orchestrate, edit, integrate, remediate, and verify;
 - Session 2 owns planning, sequencing, integration, and final verification;
 - the review loop is independent, evidence-based, and bounded;
 - no sentence grants permission to push or open PRs before the final handoff question.

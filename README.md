@@ -15,7 +15,7 @@ Feature Orchestrator supports the first half of a two-session engineering workfl
 
 The implementation session owns its plan, coordinates research and implementation agents, verifies the completed feature, runs bounded independent review, and prepares an evidence-backed pull request proposal.
 
-Feature Orchestrator uses GPT-5.6 Sol at Extra High reasoning for the primary implementation agent, implementation sub-agents, and fixes. It uses GPT-5.6 Terra at Extra High reasoning for research, repository exploration, and independent review.
+Feature Orchestrator is model- and environment-portable. It resolves two stable roles: a **Lead** for orchestration, implementation, integration, fixes, and final verification; and a **Researcher** for documentation, repository exploration, gap analysis, and independent review. Preferred presets currently cover Codex, Claude Code, Cursor, and Grok Build, with capability-based fallbacks for other environments. See the [runtime routing policy](skills/feature-orchestrator/references/runtime-routing.md).
 
 ## Install
 
@@ -72,7 +72,8 @@ skills/
     ├── agents/
     │   └── openai.yaml
     └── references/
-        └── execution-prompt-contract.md
+        ├── execution-prompt-contract.md
+        └── runtime-routing.md
 ```
 
 The root [`skills.sh.json`](skills.sh.json) controls how skills are grouped on this repository's skills.sh page as the collection grows.

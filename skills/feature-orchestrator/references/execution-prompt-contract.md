@@ -36,10 +36,16 @@ Omit irrelevant sections. Do not replace feature-specific conclusions with vague
 You are the primary implementation agent responsible for delivering [complete feature outcome].
 
 Required primary runtime:
-  model: gpt-5.6-sol
-  reasoning_effort: xhigh
+  environment: [resolved ADE or harness]
+  role: Lead
+  model: [exact resolved model identifier]
+  options: [exact resolved reasoning, effort, speed, or variant settings]
 
-This is GPT-5.6 Sol at Extra High reasoning. Do not silently substitute another model or reasoning level.
+Researcher runtime:
+  model: [exact resolved model identifier]
+  options: [exact resolved reasoning, effort, speed, or variant settings]
+
+[Include a concise capability-fallback note only when the preferred routing could not be enforced. Do not silently substitute another model or runtime option.]
 
 Repository:
   [absolute repository path]
@@ -55,8 +61,11 @@ Do not stop after producing a plan. Read the repository instructions, inspect th
 
 You are the main orchestrator, integration owner, and final verifier. You decide the work decomposition, sequencing, and integration strategy after inspecting the repository.
 
-- Use `model: gpt-5.6-terra` with `reasoning_effort: xhigh` for every research, current-documentation, read-only codebase exploration, test-gap analysis, and independent final-review sub-agent.
-- Use `model: gpt-5.6-sol` with `reasoning_effort: xhigh` for every implementation, code-edit, and remediation sub-agent.
+- Use the exact resolved Researcher model and runtime options for every research, current-documentation, read-only codebase exploration, test-gap analysis, and independent final-review sub-agent.
+- Use the exact resolved Lead model and runtime options for every implementation, code-edit, and remediation sub-agent.
+- Adapt model-setting syntax to the active environment. Do not emit fields or options that the environment does not support.
+- If both roles resolve to the same model, preserve independence with fresh contexts, bounded prompts, read-only review agents, and reviewers that did not author the implementation.
+- If the environment cannot select models per sub-agent, inherit the available model and state that limitation. If it cannot delegate at all, use the strongest available sequential fallback and do not claim independent multi-agent review.
 - Use as many agents as are genuinely useful within available concurrency. Every agent must have a bounded deliverable, explicit ownership, dependencies, and a verification condition.
 - Parallelize independent work. Stagger dependent work and avoid simultaneous ownership of shared or high-conflict files.
 - Tell implementation agents they are not alone in the repository, must preserve user changes, must not revert others, and must accommodate concurrent work.
@@ -65,7 +74,7 @@ You are the main orchestrator, integration owner, and final verifier. You decide
 
 ## Mandatory preparation
 
-- Read every applicable `AGENTS.md` and repository-owned instruction before editing.
+- Read every applicable repository-owned instruction before editing, including `AGENTS.md`, `CLAUDE.md`, or environment-specific rules where present.
 - Read version-specific framework guidance required by those instructions.
 - Inspect the branch, worktrees, status, current dependencies, existing tests, and relevant code before planning.
 - Preserve pre-existing user changes and avoid unrelated refactors.
@@ -111,9 +120,9 @@ Distinguish firm requirements from suggested defaults that Session 2 may adjust 
 
 After implementation and initial whole-feature verification pass:
 
-1. Spawn independent reviewers with `model: gpt-5.6-terra` and `reasoning_effort: xhigh` that did not author the reviewed changes. Give them distinct, nonredundant scopes based on the actual risks—for example specification coverage, framework/API correctness, authorization and tenant isolation, races/idempotency, UI failure recovery, or test adequacy.
+1. Spawn independent Researcher-role reviewers that did not author the reviewed changes, using the exact resolved Researcher runtime. Give them distinct, nonredundant scopes based on the actual risks—for example specification coverage, framework/API correctness, authorization and tenant isolation, races/idempotency, UI failure recovery, or test adequacy.
 2. Require reviewers to cite concrete files, behavior, or reproduction evidence and rank findings by severity.
-3. Have the orchestrator triage every finding. Assign accepted code fixes to agents with `model: gpt-5.6-sol` and `reasoning_effort: xhigh`, explain evidence-based dismissals, and rerun affected checks.
+3. Have the orchestrator triage every finding. Assign accepted code fixes to Lead-role agents using the exact resolved Lead runtime, explain evidence-based dismissals, and rerun affected checks.
 4. Run at most two complete review/remediation cycles. If material disagreement or uncertainty remains, surface it prominently in the final handoff rather than looping indefinitely.
 
 External AI review tools are a later gate, not a substitute for repository tests, runtime verification, or human judgment.
@@ -160,7 +169,8 @@ The final line, only when implementation is complete and PR-ready, must be:
 
 - It reflects the latest settled scope, including every later correction and exclusion.
 - It carries enough concrete product and technical context to avoid rediscovery, without pretending Session 1's suggestions are the final code plan.
-- It uses the exact runtime routing: the primary agent is `gpt-5.6-sol` with `xhigh`; `gpt-5.6-terra` with `xhigh` researches, explores, analyzes gaps, and reviews; `gpt-5.6-sol` with `xhigh` edits and remediates.
+- It records the exact resolved environment, Lead runtime, Researcher runtime, and any honest capability fallback; no “best model” decision remains for Session 2.
+- Researcher-role agents research, explore, analyze gaps, and review; Lead-role agents orchestrate, edit, integrate, remediate, and verify.
 - It tells Session 2 to plan and continue through implementation rather than stop after planning.
 - It lets the orchestrator choose the useful agent topology and sequencing from live dependencies.
 - It assigns the main agent responsibility for integration and final proof.
