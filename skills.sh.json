@@ -1,0 +1,13 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Agent Workflows",
+      "description": "Skills for planning, coordinating, and reviewing agent-led engineering work.",
+      "skills": [
+        "feature-orchestrator"
+      ]
+    }
+  ]
+}
