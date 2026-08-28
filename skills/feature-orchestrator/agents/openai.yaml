@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feature Orchestrator"
+  short_description: "Shape a feature, then brief its implementation team"
+  default_prompt: "Use $feature-orchestrator to help me think through this feature and, once it is settled, create a copy-ready orchestration prompt for a separate implementation session."
