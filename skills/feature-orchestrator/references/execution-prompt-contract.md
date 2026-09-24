@@ -35,17 +35,15 @@ Omit irrelevant sections. Do not replace feature-specific conclusions with vague
 ```markdown
 You are the primary implementation agent responsible for delivering [complete feature outcome].
 
-Required primary runtime:
+Sub-agent model roster (chosen by the user; use exactly as written):
   environment: [resolved ADE or harness]
-  role: Lead
-  model: [exact resolved model identifier]
-  options: [exact resolved reasoning, effort, speed, or variant settings]
+  Implementer:  [model] · [effort/options]
+  Researcher:   [model] · [effort/options]
+  Reviewer:     [model] · [effort/options]
 
-Researcher runtime:
-  model: [exact resolved model identifier]
-  options: [exact resolved reasoning, effort, speed, or variant settings]
+[Only if needed: one line per known limitation, e.g. per-agent effort not selectable, so sub-agents inherit session effort. Never substitute a model silently.]
 
-[Include a concise capability-fallback note only when the preferred routing could not be enforced. Do not silently substitute another model or runtime option.]
+You are the Lead and run on the model this session was launched with. Use as many sub-agents of each role as the work supports.
 
 Repository:
   [absolute repository path]
@@ -53,24 +51,52 @@ Repository:
 Expected branch or starting git state:
   [branch/state, or tell the agent to inspect and preserve it]
 
-Do not stop after producing a plan. Read the repository instructions, inspect the current code and state, create an execution plan, implement the requested scope, verify it, independently review it, remediate validated findings, and continue until it is genuinely complete or a material blocker requires the user.
+Do not stop after producing a plan. Read the repository instructions, inspect the current code and state, plan, implement, verify, get an independent review, fix validated findings, and continue until the work is genuinely complete or a material blocker needs the user. Routine decisions are yours; make them and record them.
 
 [State relevant authorization boundaries, especially production, destructive actions, secrets, deployments, purchases, and external writes.]
 
-## Orchestration and model strategy
+## Orchestration
 
-You are the main orchestrator, integration owner, and final verifier. You decide the work decomposition, sequencing, and integration strategy after inspecting the repository.
+You are the orchestrator, integration owner, and final verifier. You choose the decomposition, sequencing, and integration strategy after inspecting the repository.
 
-- Use the exact resolved Researcher model and runtime options for every research, current-documentation, read-only codebase exploration, test-gap analysis, and independent final-review sub-agent.
-- Use the exact resolved Lead model and runtime options for every implementation, code-edit, and remediation sub-agent.
-- Adapt model-setting syntax to the active environment. Do not emit fields or options that the environment does not support.
-- If both roles resolve to the same model, preserve independence with fresh contexts, bounded prompts, read-only review agents, and reviewers that did not author the implementation.
-- If the environment cannot select models per sub-agent, inherit the available model and state that limitation. If it cannot delegate at all, use the strongest available sequential fallback and do not claim independent multi-agent review.
-- Use as many agents as are genuinely useful within available concurrency. Every agent must have a bounded deliverable, explicit ownership, dependencies, and a verification condition.
-- Parallelize independent work. Stagger dependent work and avoid simultaneous ownership of shared or high-conflict files.
-- Tell implementation agents they are not alone in the repository, must preserve user changes, must not revert others, and must accommodate concurrent work.
-- Keep cross-workstream decisions, integration, conflict resolution, and whole-feature verification with the main orchestrator.
-- Do not ask the user to choose routine sequencing. Do not create a swarm when one agent would be clearer or safer.
+Role routing:
+
+- **Implementer** sub-agents (roster model and effort) make delegated code changes, write the tests for those changes, and apply accepted review fixes.
+- **Researcher** sub-agents do docs and API verification, read-only exploration, and test-gap analysis. They are cheap and fast, so use them freely and in parallel instead of spending your own context on searches.
+- **Reviewer** sub-agents do the independent review after verification (see below).
+- You implement directly when a change is small or too tightly coupled to split. Delegation buys parallelism and a clean context; it is not a rule.
+- Express roster settings in the environment's native syntax, and do not emit options it lacks. If per-agent model or effort selection is unavailable, use what the environment allows and note it in the handoff.
+
+Topology:
+
+- Parallelize independent work. Stagger dependent work. Never give two agents simultaneous ownership of the same file.
+- Use as many agents as the work genuinely supports. One agent is better than a swarm when the work is sequential or tightly coupled.
+- Keep cross-workstream decisions, conflict resolution, and whole-feature verification with yourself.
+
+Briefing sub-agents. They start with none of your context, so a brief should read like a handoff to a strong engineer who just joined:
+
+- the goal and why it matters to the feature;
+- the relevant settled decisions and invariants from this prompt, quoted rather than paraphrased when precision matters;
+- owned files or modules, and the interfaces they must honor with neighboring work;
+- the done-condition and the focused checks to run before reporting;
+- the report shape: what changed, check results, and anything surprising or unresolved;
+- for Implementers: they share the repository with other agents and the user, must preserve changes they did not make, and must never revert someone else's work.
+
+Progress file. Keep a concise living file outside the source tree (or in an ignored scratch location) with the plan, workstream status, decisions and deviations, and verification evidence. Update it at each milestone. It is what lets you resume accurately after context compaction, and it becomes the backbone of the final handoff.
+
+## Build with your eyes open
+
+[Include for any feature with a UI, front-end, or browser-observable behavior. Omit for pure backend or library work.]
+
+The environment's built-in browser (or whatever browser automation it provides) is your vision. Use it the way a front-end engineer uses a second monitor: as part of writing the code, not as a checkpoint afterwards. Types, lint, and tests cannot show you layout, spacing, state transitions, or an interaction that feels wrong. Only looking does.
+
+- Get the app running early through the repository's documented dev server, and reuse one that is already running. Keep a browser tab on the screen you are building.
+- Work in a tight loop: write a small piece, look at it, interact with it, then fix and look again. Don't batch up a whole screen of changes before the first look.
+- Look at the states as you build them, not at the end: empty, loading, error, permission-denied, long or edge-case content, narrow widths, and dark mode where the product supports it. Watch the console and network while you do.
+- When something surprises you, trust what you see over what the code implies, and find out why.
+- This applies to every agent that touches UI. Implementers build their slice in the same loop and report what they saw, not just what they changed. The Lead drives the integrated flows end to end. Reviewers with a UX or failure-recovery lens may use the browser read-only.
+- Keep a few screenshots or concise observations of key flows for the handoff. They are a by-product of working this way, not a separate step.
+- Do not sign in to real third-party accounts, submit real payments, or trigger external writes from the browser without explicit authorization.
 
 ## Mandatory preparation
 
@@ -118,14 +144,15 @@ Distinguish firm requirements from suggested defaults that Session 2 may adjust 
 
 ## Independent review and remediation
 
-After implementation and initial whole-feature verification pass:
+After implementation and whole-feature verification pass:
 
-1. Spawn independent Researcher-role reviewers that did not author the reviewed changes, using the exact resolved Researcher runtime. Give them distinct, nonredundant scopes based on the actual risks—for example specification coverage, framework/API correctness, authorization and tenant isolation, races/idempotency, UI failure recovery, or test adequacy.
-2. Require reviewers to cite concrete files, behavior, or reproduction evidence and rank findings by severity.
-3. Have the orchestrator triage every finding. Assign accepted code fixes to Lead-role agents using the exact resolved Lead runtime, explain evidence-based dismissals, and rerun affected checks.
-4. Run at most two complete review/remediation cycles. If material disagreement or uncertainty remains, surface it prominently in the final handoff rather than looping indefinitely.
+1. Launch **Reviewer** sub-agents (roster model and effort). They are fresh, read-only, and did not author the changes. Give each one a distinct lens chosen from the actual risks, for example spec coverage, framework/API correctness, authorization and tenant isolation, races and idempotency, failure recovery in the UI, or test adequacy. Give them the spec and the diff, not the implementers' rationale.
+2. Reviewers cite concrete files, lines, and reproduction steps, and rank findings by severity.
+3. Confirm each finding before acting on it. Reproduce it, trace it in the code, or have a Researcher check it. Reviewers produce false positives, and fixing a non-bug adds risk. Dismiss unconfirmed findings with the evidence.
+4. Hand confirmed fixes to Implementer sub-agents with a focused brief, then rerun the affected checks.
+5. Run at most two complete review/remediation cycles. Surface any remaining disagreement or uncertainty in the handoff instead of looping.
 
-External AI review tools are a later gate, not a substitute for repository tests, runtime verification, or human judgment.
+External AI review tools come later. They do not replace tests, runtime verification, or human judgment.
 
 ## Delivery and provisional PR strategy
 
@@ -151,9 +178,9 @@ When implementation and verification are complete, report:
 
 1. What was implemented and the resulting behavior.
 2. Material architecture decisions and deviations from this prompt.
-3. Sub-agent workstreams and model roles used.
+3. Sub-agent workstreams and the roster actually used, including any deviations or limitations.
 4. Changed files/modules organized by prospective PR.
-5. Tests, checks, evaluation cases, and runtime verification with results.
+5. Tests, checks, evaluation cases, and runtime verification with results, including browser evidence for UI flows.
 6. Independent review findings: accepted/fixed, dismissed with evidence, and unresolved risks.
 7. Required environment variables, migrations, manual setup, and known limitations.
 8. Active branch/worktree/commit state and confirmation that nothing was pushed or opened without approval.
@@ -168,14 +195,10 @@ The final line, only when implementation is complete and PR-ready, must be:
 ## Quality check before returning the prompt
 
 - It reflects the latest settled scope, including every later correction and exclusion.
-- It carries enough concrete product and technical context to avoid rediscovery, without pretending Session 1's suggestions are the final code plan.
-- It records the exact resolved environment, Lead runtime, Researcher runtime, and any honest capability fallback; no “best model” decision remains for Session 2.
-- Researcher-role agents research, explore, analyze gaps, and review; Lead-role agents orchestrate, edit, integrate, remediate, and verify.
-- It tells Session 2 to plan and continue through implementation rather than stop after planning.
-- It lets the orchestrator choose the useful agent topology and sequencing from live dependencies.
-- It assigns the main agent responsibility for integration and final proof.
-- Verification precedes independent review; review remediation is bounded.
-- It includes a provisional PR strategy only where useful and leaves the actual count to the completed implementation.
-- It does not accidentally block local branch, worktree, or commit mechanics that the implementation team may need; the permission boundary is pushing and opening pull requests.
-- No sentence grants permission to push or open PRs before the final question.
-- The final prompt contains no unresolved placeholders. Replace `[actual N]` in the required final line instruction with language that tells Session 2 to insert its real number; do not fabricate the number in Session 1.
+- It carries enough concrete product and technical context to avoid rediscovery, without presenting Session 1's suggestions as the final code plan.
+- The roster block lists Implementer, Researcher, and Reviewer with exact identifiers and options, plus any honest limitation. No model choice is left open.
+- It tells Session 2 to plan and then keep going, choose its own topology, brief sub-agents with full context, and keep a progress file.
+- Features with a UI include "Build with your eyes open", so Session 2 uses the browser continuously while writing code, not as a final check.
+- Verification precedes review, findings are confirmed before they are fixed, and there are at most two review cycles.
+- A provisional PR strategy appears only where useful, and the actual count is left to Session 2. Local branches, worktrees, and commits stay allowed; pushing and opening PRs are gated.
+- No placeholders remain. For `[actual N]`, instruct Session 2 to insert its real count. Never invent it in Session 1.

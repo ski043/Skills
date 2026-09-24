@@ -1,117 +1,115 @@
 ---
 name: feature-orchestrator
-description: Guide an iterative product and technical discussion, then turn the settled feature into a copy-ready orchestration prompt for a separate implementation session. Use when the user wants to explore, narrow, summarize, or hand off a substantial feature without implementing it in the current session.
+description: Guide an iterative product and technical discussion, then turn the settled feature into a copy-ready orchestration prompt for a separate implementation session with a user-chosen model roster for its Implementer, Researcher, and Reviewer sub-agents. Use when the user wants to explore, narrow, summarize, or hand off a substantial feature without implementing it in the current session.
 license: MIT
 ---
 
 # Feature Orchestrator
 
-Run Session 1 of a two-session feature workflow. Help the user think until the product and technical game plan feel settled; only then compile the implementation prompt for Session 2.
+This skill runs Session 1 of a two-session workflow. Session 1 thinks: it helps the user settle what to build and why. Session 2 builds: a fresh session receives the compiled prompt, plans against the live repository, and delivers.
 
-Do not rush from the first idea to the prompt. The conversation itself is part of the work.
+The split exists because planning and implementation compete for the same context window and attention. Session 1 can explore freely and change its mind. Session 2 starts clean, with only the settled decisions. So the most valuable thing Session 1 produces is a prompt that carries every hard-won decision precisely. A thorough plan matters less.
+
+Do not rush from the first idea to the prompt. The conversation is part of the work.
 
 ## Boundary
 
-- Do not implement the feature in Session 1.
-- Inspect repository instructions, code, tests, dependencies, and relevant documentation read-only by default.
-- Do not modify source, configuration, dependencies, schemas, or tests. A reversible workflow action such as creating a local branch is allowed only when the user explicitly asks for that action.
-- Do not produce a separate authoritative implementation plan for Session 1 approval. Detailed technical reasoning, likely APIs, data models, flows, risks, candidate milestones, and workstream ideas are allowed when they help settle the feature or make the Session 2 prompt executable. Session 2 must still inspect the current repository and create its own actual plan.
-- Do not silently resolve a product ambiguity that would materially alter behavior or scope. Ask a focused question when discussion, inspection, or research cannot resolve it safely.
-- Return discussion, summaries, and prompts in the conversation unless the user asks to save them.
+- Do not implement in Session 1. Read repository instructions, code, tests, dependencies, and docs freely, but do not modify source, config, dependencies, schemas, or tests. A reversible workflow action, such as creating a local branch, is fine when the user asks for it.
+- Technical depth is welcome: likely APIs, data models, flows, risks, and candidate milestones all help settle the feature. None of it becomes Session 2's plan. Session 2 re-inspects the repository and plans for itself, because the code may have moved and Session 1's view was partial.
+- If a product ambiguity would materially change behavior or scope, ask. Don't resolve it silently.
+- Keep discussion, summaries, and prompts in the conversation unless the user asks to save them.
+
+## Settle the model roster
+
+Session 2 uses four roles:
+
+- **Lead**: Session 2's main agent. It orchestrates, integrates, and does the final verification. Its model is whatever the user launches Session 2 with, so it is not part of the roster.
+- **Implementer**: sub-agents that make bounded code changes and fixes.
+- **Researcher**: sub-agents for docs, API checks, and read-only exploration. They also serve Session 1.
+- **Reviewer**: independent, read-only sub-agents that review the integrated change.
+
+The user chooses the model and effort for the three sub-agent roles. Session 2 runs as many agents of each role as the work supports.
+
+Ask for the roster at handoff, every time you compile the prompt. Don't ask during the discussion. Session 1's own research sub-agents use the environment's preset Researcher. [references/model-roster.md](references/model-roster.md) covers how to ask (one question per role, recommended option first), how to check availability, and how to keep review independent.
 
 ## Work conversationally
 
 ### Explore
 
-Answer the user's current question at its natural altitude. Explain feasibility, product implications, technical options, complexity, and tradeoffs without forcing the entire workflow into every response.
-
-Establish progressively:
+Answer the current question at its natural altitude. Don't force the whole workflow into every reply. Over the conversation, establish:
 
 - what the product does today;
-- who the feature is for and the outcome they need;
+- who the feature is for and what outcome they need;
 - the intended user journey;
-- what is in scope now versus later;
-- the stack and architecture that fit the current repository;
-- failure behavior, permissions, race conditions, data ownership, cost, and operability where material.
+- what is in scope now and what comes later;
+- the stack and architecture that fit this repository;
+- failure behavior, permissions, races, data ownership, cost, and operability, where they matter.
 
-Separate observed repository facts, current external facts, user decisions, recommendations, and assumptions.
+Keep observed repository facts, current external facts, user decisions, recommendations, and assumptions distinguishable. They carry different weight in the final prompt.
 
 ### Research when it changes a decision
 
-- Before the first delegation, read [references/runtime-routing.md](references/runtime-routing.md) completely and resolve the Lead and Researcher roles for the current agent development environment.
-- Delegate independent research, documentation checks, and codebase exploration to Researcher-role agents.
-- Use as many Researcher agents as are genuinely useful within available concurrency; give each one a bounded question and concrete deliverable.
-- Prefer repository evidence and primary, current sources. Preserve direct links for unstable external claims.
-- Synthesize the findings into the conversation. Do not paste raw research memos or perform research merely to demonstrate a swarm.
+- Delegate independent research, documentation checks, and codebase exploration to Researcher sub-agents. Run them in parallel when their questions are independent.
+- Give each one a bounded question, the reason it matters, and the shape of the answer you want. For example: conclusions with `file:line` or source-link evidence, not file dumps.
+- Prefer repository evidence and current primary sources. Keep links for claims that may go stale.
+- Fold the findings into the conversation. Don't paste raw memos, and don't research just to look thorough.
 
 ### Refine with the user
 
-Expect the user to narrow scope, reject complexity, change priorities, or ask whether a proposed direction is correct. Reconcile each correction with earlier decisions rather than starting over or defending the previous recommendation.
+Expect the user to narrow scope, reject complexity, reprioritize, or push back. Reconcile each correction with earlier decisions. Don't start over, and don't defend the previous recommendation.
 
-Maintain a decision ledger mentally throughout the conversation:
+Keep a mental decision ledger:
 
-- accepted product behavior;
+- accepted behavior;
 - rejected or deferred scope;
-- selected technologies and important exclusions;
-- settled technical invariants;
-- unresolved questions;
-- requested verification and delivery expectations.
+- chosen technologies and deliberate exclusions;
+- settled invariants;
+- open questions;
+- verification and delivery expectations.
 
-Do not expose the ledger mechanically after every turn. Use it to keep later answers and the final prompt consistent.
+Don't recite it every turn. Use it to keep later answers and the final prompt consistent, because a correction made in turn 5 is easy to lose by turn 30.
 
 ### Summarize on request
 
-When the user asks for an overview, game plan, rundown, or recap, give a comprehensive current synthesis. For a complex feature, include the relevant stack, user experience, data model, workflows, security/authorization boundaries, failure recovery, race protection, testing, and sensible delivery order. Keep recommendations revisable until the user settles them.
-
-This summary may be technically detailed; it is still not Session 2's authoritative implementation plan.
+When the user asks for an overview, game plan, or recap, give a complete current synthesis. For a complex feature that means the stack, UX, data model, workflows, authorization boundaries, failure recovery, race protection, testing, and a sensible delivery order. It stays revisable until the user settles it.
 
 ## Compile only when asked
 
-Create the Session 2 prompt only when the user explicitly asks for the high-quality implementation/orchestration prompt or clearly declares the game plan settled.
+Compile the Session 2 prompt only when the user asks for it or clearly declares the plan settled.
 
-Before drafting it, read [references/runtime-routing.md](references/runtime-routing.md) and [references/execution-prompt-contract.md](references/execution-prompt-contract.md) completely. Reuse a runtime mapping already resolved in this session unless the user changed the environment or model preference. Adapt the prompt contract's coverage to the feature. Preserve hard-won domain decisions in specific language; do not compress them into generic “follow best practices” instructions.
+1. Read [references/model-roster.md](references/model-roster.md) and ask the user for the roster: model and effort for Implementer, Researcher, and Reviewer. Draft nothing until they answer.
+2. Read [references/execution-prompt-contract.md](references/execution-prompt-contract.md) and adapt it to the feature.
+3. Preserve hard-won decisions in specific language. "Follow best practices" loses information that took the whole conversation to establish.
+4. If a material choice is still open, ask for it. Don't disguise it as an instruction.
 
-The prompt must preserve these workflow choices:
+The prompt must encode these workflow choices:
 
-- The main Session 2 agent uses the resolved Lead model and is the orchestrator, integration owner, and final verifier.
-- Session 2 inspects the fresh repository, creates its own working plan, and then implements without stopping after the plan.
-- Research, current-documentation work, codebase exploration, test-gap analysis, and independent read-only review use the resolved Researcher model.
-- Every code change and review remediation uses the resolved Lead model.
-- The compiled prompt states the exact resolved environment, model identifiers, and runtime options. It does not leave “best model” or similar routing decisions unresolved for Session 2.
-- The orchestrator decides what to parallelize or stagger from dependencies, shared files, risk, and available concurrency.
-- There is no arbitrary agent cap, but every sub-agent needs bounded ownership, a concrete deliverable, dependencies, and a verification condition. Do not create a swarm without useful independent work.
-- Implementation agents know they share the repository, preserve user changes, avoid conflicting ownership, and do not revert one another.
-- Focused verification happens throughout implementation; whole-feature verification happens before independent review.
-- Researcher-role reviewers cover distinct material risks. The orchestrator triages their evidence, assigns validated fixes to Lead-role agents, and reruns affected checks.
-- Run no more than two full independent review/remediation cycles. Handoff remaining disagreement or uncertainty instead of looping forever.
-- Session 2 prepares a concrete, evidence-backed PR proposal but does not push branches or open pull requests without explicit approval.
-- Completion ends with a handoff and the exact permission question using the actual proposed PR count.
+- The Lead plans against the fresh repository, then implements without stopping for approval.
+- Every sub-agent uses its role's chosen model and options exactly. No model choice is left for Session 2. The Lead runs as launched.
+- Session 2 uses multiple sub-agents: parallel Researchers for independent questions, parallel Implementers on independent slices, and several Reviewers with distinct lenses.
+- The Lead chooses the topology. It parallelizes independent work, staggers dependent work, and implements directly when delegation would not help. There is no arbitrary agent cap and no swarm for its own sake.
+- Every sub-agent gets a context-rich brief: goal, why it matters, relevant decisions, owned files, interfaces with neighbors, done-condition, and checks to run. Implementers know they share the repository and must not revert each other or the user's changes.
+- The Lead keeps a progress file so that plan, status, and decisions survive context compaction.
+- Focused checks run during implementation. Whole-feature verification runs before review.
+- For front-end or browser-observable work, the built-in browser is Session 2's vision. Every agent touching UI works in a write → look → interact → fix loop from the first change onward, not with one verification pass at the end.
+- Reviewers take distinct risk lenses. The Lead confirms each finding before it is fixed and hands accepted fixes to Implementers. There are at most two review/remediation cycles.
+- Session 2 prepares an evidence-backed PR proposal. It does not push or open PRs without explicit approval, and it ends with the exact permission question using its real PR count.
 
-## Delivery and PR thinking
+### Delivery and PR thinking
 
-When the settled feature benefits from multiple PRs, the prompt may include a provisional, outcome-oriented PR strategy and known dependencies. It must require Session 2 to validate and refine that strategy after seeing the actual implementation surface.
+If the feature benefits from several PRs, include a provisional, outcome-oriented split with known dependencies, and have Session 2 validate it against the real change graph. Keep tests with the behavior they prove. Workstreams and PR boundaries are separate concepts, and a proposed split should never be forced when it would be unsafe.
 
-- Optimize for coherent, reviewable changes rather than an arbitrary PR count.
-- Keep tests with the behavior they verify; do not postpone all tests to a final PR.
-- Distinguish parallel workstreams from final PR boundaries. They are not necessarily the same.
-- Preserve separability during implementation where practical, but do not force an unsafe split.
+### Output
 
-## Output when compiling
-
-Return a short introduction followed by one copy-ready Session 2 prompt. Do not repeat the entire specification outside the prompt unless unresolved assumptions need the user's attention.
-
-If a material choice is unresolved, ask for it before saying the prompt is ready. Do not disguise unresolved choices as instructions.
+Return a short introduction and one copy-ready prompt. Don't restate the spec outside the prompt unless an assumption needs the user's attention.
 
 ## Final self-check
 
-Confirm that:
+Before returning the prompt, confirm:
 
-- Session 1 did not implement the feature or pretend its suggestions were Session 2's final plan;
-- the prompt reflects every later correction and scope reduction from the conversation;
-- repository facts, decisions, recommendations, and assumptions are not conflated;
-- the prompt contains specific product behavior, technical invariants, and proof requirements—not generic advice;
-- the Lead and Researcher roles use exact, available runtime settings resolved from the user override, matching preset, or capability fallback;
-- Researcher-role agents research, explore, analyze gaps, and review; Lead-role agents orchestrate, edit, integrate, remediate, and verify;
-- Session 2 owns planning, sequencing, integration, and final verification;
-- the review loop is independent, evidence-based, and bounded;
-- no sentence grants permission to push or open PRs before the final handoff question.
+- nothing was implemented in Session 1, and no suggestion is presented as Session 2's final plan;
+- every later correction and scope reduction is reflected;
+- facts, decisions, recommendations, and assumptions are distinguishable;
+- behavior, invariants, and proof requirements are specific to this feature;
+- Implementer, Researcher, and Reviewer carry exact, available settings the user chose or confirmed, plus any honest limitation;
+- no sentence permits pushing or opening PRs before the final question.

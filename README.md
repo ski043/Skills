@@ -15,7 +15,16 @@ Feature Orchestrator supports the first half of a two-session engineering workfl
 
 The implementation session owns its plan, coordinates research and implementation agents, verifies the completed feature, runs bounded independent review, and prepares an evidence-backed pull request proposal.
 
-Feature Orchestrator is model- and environment-portable. It resolves two stable roles: a **Lead** for orchestration, implementation, integration, fixes, and final verification; and a **Researcher** for documentation, repository exploration, gap analysis, and independent review. Preferred presets currently cover Codex, Claude Code, Cursor, and Grok Build, with capability-based fallbacks for other environments. See the [runtime routing policy](skills/feature-orchestrator/references/runtime-routing.md).
+Feature Orchestrator is model- and environment-portable. Session 2 runs a team with four roles:
+
+| Role | Does | Model |
+| --- | --- | --- |
+| **Lead** | Session 2's main agent: plans, orchestrates, integrates, verifies, hands off | Whatever you launch Session 2 with |
+| **Implementer** | Sub-agents that make bounded code changes and review fixes | You choose |
+| **Researcher** | Sub-agents for docs, API checks, and read-only exploration (also used in Session 1) | You choose |
+| **Reviewer** | Independent, read-only sub-agents that review the integrated change | You choose |
+
+Each time you request the handoff prompt, the skill asks you for the model and effort of the three sub-agent roles. It recommends your saved roster or the environment's preset (Claude Code, Codex, Cursor, and Grok Build today), resolved to the newest available model in each family. You can also answer up front, for example `compile it with impl=opus/medium research=opus/low review=opus/medium`. See the [model roster reference](skills/feature-orchestrator/references/model-roster.md).
 
 ## Install
 
@@ -73,7 +82,7 @@ skills/
     │   └── openai.yaml
     └── references/
         ├── execution-prompt-contract.md
-        └── runtime-routing.md
+        └── model-roster.md
 ```
 
 The root [`skills.sh.json`](skills.sh.json) controls how skills are grouped on this repository's skills.sh page as the collection grows.
